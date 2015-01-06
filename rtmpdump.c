@@ -34,12 +34,18 @@
 #include "librtmp/log.h"
 
 #ifdef WIN32
-#define fseeko fseeko64
-#define ftello ftello64
+#define RTMP_fseeko _fseeki64
+#define RTMP_ftello _ftelli64
 #include <io.h>
 #include <fcntl.h>
-#define	SET_BINMODE(f)	setmode(fileno(f), O_BINARY)
+#include <sys/types.h>
+#define	SET_BINMODE(f)	_setmode(_fileno(f), O_BINARY)
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "gdi32.lib")
 #else
+#define RTMP_fseeko fseeko
+#define RTMP_ftello ftello
 #define	SET_BINMODE(f)
 #endif
 
@@ -67,7 +73,7 @@ InitSockets()
 #endif
 }
 
-inline void
+void
 CleanupSockets()
 {
 #ifdef WIN32
@@ -149,7 +155,7 @@ OpenResumeFile(const char *flvFile,	// file name [in]
     return RD_SUCCESS;		// RD_SUCCESS, because we go to fresh file mode instead of quiting
 
   fseek(*file, 0, SEEK_END);
-  *size = ftello(*file);
+  *size = RTMP_ftello(*file);
   fseek(*file, 0, SEEK_SET);
 
   if (*size > 0)
@@ -199,7 +205,7 @@ OpenResumeFile(const char *flvFile,	// file name [in]
 
       while (pos < *size - 4 && !bFoundMetaHeader)
 	{
-	  fseeko(*file, pos, SEEK_SET);
+	  RTMP_fseeko(*file, pos, SEEK_SET);
 	  if (fread(hbuf, 1, 4, *file) != 4)
 	    break;
 
@@ -218,7 +224,7 @@ OpenResumeFile(const char *flvFile,	// file name [in]
 		    return RD_FAILED;
 		}
 
-	      fseeko(*file, pos + 11, SEEK_SET);
+	      RTMP_fseeko(*file, pos + 11, SEEK_SET);
 	      if (fread(buffer, 1, dataSize, *file) != dataSize)
 		break;
 
@@ -278,14 +284,13 @@ GetLastKeyframe(FILE * file,	// output file [in]
 		int *initialFrameType,	// initial frame type (audio/video) [out]
 		uint32_t * nInitialFrameSize)	// length of initialFrame [out]
 {
-  const size_t bufferSize = 16;
-  char buffer[bufferSize];
+  char buffer[16];
   uint8_t dataType;
   int bAudioOnly;
   off_t size;
 
   fseek(file, 0, SEEK_END);
-  size = ftello(file);
+  size = RTMP_ftello(file);
 
   fseek(file, 4, SEEK_SET);
   if (fread(&dataType, sizeof(uint8_t), 1, file) != 1)
@@ -315,7 +320,7 @@ GetLastKeyframe(FILE * file,	// output file [in]
 	      "Unexpected start of file, error in tag sizes, couldn't arrive at prevTagSize=0");
 	  return RD_FAILED;
 	}
-      fseeko(file, size - tsize - 4, SEEK_SET);
+      RTMP_fseeko(file, size - tsize - 4, SEEK_SET);
       xread = fread(buffer, 1, 4, file);
       if (xread != 4)
 	{
@@ -342,7 +347,7 @@ GetLastKeyframe(FILE * file,	// output file [in]
       tsize += prevTagSize + 4;
 
       // read header
-      fseeko(file, size - tsize, SEEK_SET);
+      RTMP_fseeko(file, size - tsize, SEEK_SET);
       if (fread(buffer, 1, 12, file) != 12)
 	{
 	  RTMP_Log(RTMP_LOGERROR, "Couldn't read header!");
@@ -381,7 +386,7 @@ GetLastKeyframe(FILE * file,	// output file [in]
   *nInitialFrameSize = prevTagSize - 11;
   *initialFrame = (char *) malloc(*nInitialFrameSize);
 
-  fseeko(file, size - tsize + 11, SEEK_SET);
+  RTMP_fseeko(file, size - tsize + 11, SEEK_SET);
   if (fread(*initialFrame, 1, *nInitialFrameSize, file) != *nInitialFrameSize)
     {
       RTMP_Log(RTMP_LOGERROR, "Couldn't read last keyframe, aborting!");
@@ -406,13 +411,13 @@ GetLastKeyframe(FILE * file,	// output file [in]
 
   /*
      // now read the timestamp of the frame before the seekable keyframe:
-     fseeko(file, size-tsize-4, SEEK_SET);
+     RTMP_fseeko(file, size-tsize-4, SEEK_SET);
      if(fread(buffer, 1, 4, file) != 4) {
      RTMP_Log(RTMP_LOGERROR, "Couldn't read prevTagSize from file!");
      goto start;
      }
      uint32_t prevTagSize = RTMP_LIB::AMF_DecodeInt32(buffer);
-     fseeko(file, size-tsize-4-prevTagSize+4, SEEK_SET);
+     RTMP_fseeko(file, size-tsize-4-prevTagSize+4, SEEK_SET);
      if(fread(buffer, 1, 4, file) != 4) {
      RTMP_Log(RTMP_LOGERROR, "Couldn't read previous timestamp!");
      goto start;
@@ -427,7 +432,7 @@ GetLastKeyframe(FILE * file,	// output file [in]
     {
       // seek to position after keyframe in our file (we will ignore the keyframes resent by the server
       // since they are sent a couple of times and handling this would be a mess)
-      fseeko(file, size - tsize + prevTagSize + 4, SEEK_SET);
+      RTMP_fseeko(file, size - tsize + prevTagSize + 4, SEEK_SET);
 
       // make sure the WriteStream doesn't write headers and ignores all the 0ms TS packets
       // (including several meta data headers and the keyframe we seeked to)
@@ -447,7 +452,7 @@ Download(RTMP * rtmp,		// connected RTMP object
   int bufferSize = 64 * 1024;
   char *buffer;
   int nRead = 0;
-  off_t size = ftello(file);
+  off_t size = RTMP_ftello(file);
   unsigned long lastPercent = 0;
 
   rtmp->m_read.timestamp = dSeek;
@@ -1182,7 +1187,7 @@ main(int argc, char **argv)
       tcUrl.av_val = (char *) malloc(tcUrl.av_len);
 	  if (!tcUrl.av_val)
 	    return RD_FAILED;
-      tcUrl.av_len = snprintf(tcUrl.av_val, tcUrl.av_len, "%s://%.*s:%d/%.*s",
+      tcUrl.av_len = RTMP_snprintf(tcUrl.av_val, tcUrl.av_len, "%s://%.*s:%d/%.*s",
 	  	   RTMPProtocolStringsLower[protocol], hostname.av_len,
 		   hostname.av_val, port, app.av_len, app.av_val);
     }

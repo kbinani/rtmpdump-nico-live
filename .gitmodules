@@ -1,0 +1,9 @@
+[submodule "ext/wingetopt"]
+	path = ext/wingetopt
+	url = https://github.com/alex85k/wingetopt.git
+[submodule "ext/zlib"]
+	path = ext/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "ext/openssl"]
+	path = ext/openssl
+	url = https://github.com/openssl/openssl.git

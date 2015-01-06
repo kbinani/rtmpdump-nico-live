@@ -28,10 +28,11 @@
 #include <ws2tcpip.h>
 
 #ifdef _MSC_VER	/* MSVC */
-#define snprintf _snprintf
-#define strcasecmp stricmp
-#define strncasecmp strnicmp
-#define vsnprintf _vsnprintf
+#define RTMP_snprintf _snprintf
+#define RTMP_strcasecmp _stricmp
+#define RTMP_strncasecmp _strnicmp
+#define RTMP_vsnprintf _vsnprintf
+#define RTMP_strdup _strdup
 #endif
 
 #define GetSockError()	WSAGetLastError()
@@ -50,6 +51,11 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#define RTMP_snprintf snprintf
+#define RTMP_strcasecmp strcasecmp
+#define RTMP_strncasecmp strncasecmp
+#define RTMP_vsnprintf vsnprintf
+#define RTMP_strdup strdup
 #define GetSockError()	errno
 #define SetSockError(e)	errno = e
 #undef closesocket

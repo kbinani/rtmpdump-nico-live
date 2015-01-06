@@ -95,7 +95,7 @@ HTTP_get(struct HTTP_ctx *http, const char *url, HTTP_read_callback *cb)
   sa.sin_family = AF_INET;
 
   /* we only handle http here */
-  if (strncasecmp(url, "http", 4))
+  if (RTMP_strncasecmp(url, "http", 4))
     return HTTPRES_BAD_REQUEST;
 
   if (url[4] == 's')
@@ -238,13 +238,13 @@ HTTP_get(struct HTTP_ctx *http, const char *url, HTTP_read_callback *cb)
 	  break;
 	}
       else
-	if (!strncasecmp
+	if (!RTMP_strncasecmp
 	    (sb.sb_start, "Content-Length: ", sizeof("Content-Length: ") - 1))
 	{
 	  flen = atoi(sb.sb_start + sizeof("Content-Length: ") - 1);
 	}
       else
-	if (!strncasecmp
+	if (!RTMP_strncasecmp
 	    (sb.sb_start, "Last-Modified: ", sizeof("Last-Modified: ") - 1))
 	{
 	  *p2 = '\0';
@@ -405,7 +405,7 @@ make_unix_time(char *s)
     time.tm_year -= ysub;
 
   for (i = 0; i < 12; i++)
-    if (!strncasecmp(month, monthtab[i], 3))
+    if (!RTMP_strncasecmp(month, monthtab[i], 3))
       {
 	time.tm_mon = i;
 	break;

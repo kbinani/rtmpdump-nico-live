@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/types.h>
 
 #include "rtmp_sys.h"
 #include "log.h"
@@ -395,7 +396,7 @@ RTMP_SetupStream(RTMP *r,
   if (sockshost->av_len)
     {
       const char *socksport = strchr(sockshost->av_val, ':');
-      char *hostname = strdup(sockshost->av_val);
+      char *hostname = RTMP_strdup(sockshost->av_val);
 
       if (socksport)
 	hostname[socksport - sockshost->av_val] = '\0';
@@ -635,7 +636,7 @@ int RTMP_SetOpt(RTMP *r, const AVal *opt, AVal *arg)
 
   for (i=0; options[i].name.av_len; i++) {
     if (opt->av_len != options[i].name.av_len) continue;
-    if (strcasecmp(opt->av_val, options[i].name.av_val)) continue;
+    if (RTMP_strcasecmp(opt->av_val, options[i].name.av_val)) continue;
     v = (char *)r + options[i].off;
     switch(options[i].otype) {
     case OPT_STR: {
@@ -651,7 +652,7 @@ int RTMP_SetOpt(RTMP *r, const AVal *opt, AVal *arg)
       fl = *(int *)v;
       for (j=0; truth[j].av_len; j++) {
         if (arg->av_len != truth[j].av_len) continue;
-        if (strcasecmp(arg->av_val, truth[j].av_val)) continue;
+        if (RTMP_strcasecmp(arg->av_val, truth[j].av_val)) continue;
         fl |= options[i].omisc; break; }
       *(int *)v = fl;
       }
@@ -749,7 +750,7 @@ int RTMP_SetupURL(RTMP *r, char *url)
     	      len = r->Link.hostname.av_len + r->Link.app.av_len +
     		  sizeof("rtmpte://:65535/");
 	      r->Link.tcUrl.av_val = malloc(len);
-	      r->Link.tcUrl.av_len = snprintf(r->Link.tcUrl.av_val, len,
+	      r->Link.tcUrl.av_len = RTMP_snprintf(r->Link.tcUrl.av_val, len,
 		"%s://%.*s:%d/%.*s",
 		RTMPProtocolStringsLower[r->Link.protocol],
 		r->Link.hostname.av_len, r->Link.hostname.av_val,
@@ -2689,21 +2690,21 @@ DumpMetaData(AMFObject *obj)
 	  switch (prop->p_type)
 	    {
 	    case AMF_NUMBER:
-	      snprintf(str, 255, "%.2f", prop->p_vu.p_number);
+	      RTMP_snprintf(str, 255, "%.2f", prop->p_vu.p_number);
 	      break;
 	    case AMF_BOOLEAN:
-	      snprintf(str, 255, "%s",
+	      RTMP_snprintf(str, 255, "%s",
 		       prop->p_vu.p_number != 0. ? "TRUE" : "FALSE");
 	      break;
 	    case AMF_STRING:
-	      snprintf(str, 255, "%.*s", prop->p_vu.p_aval.av_len,
+	      RTMP_snprintf(str, 255, "%.*s", prop->p_vu.p_aval.av_len,
 		       prop->p_vu.p_aval.av_val);
 	      break;
 	    case AMF_DATE:
-	      snprintf(str, 255, "timestamp:%.2f", prop->p_vu.p_number);
+	      RTMP_snprintf(str, 255, "timestamp:%.2f", prop->p_vu.p_number);
 	      break;
 	    default:
-	      snprintf(str, 255, "INVALID TYPE 0x%02x",
+	      RTMP_snprintf(str, 255, "INVALID TYPE 0x%02x",
 		       (unsigned char)prop->p_type);
 	    }
 	  if (prop->p_name.av_len)
@@ -3759,7 +3760,7 @@ static int
 HTTP_Post(RTMP *r, RTMPTCmd cmd, const char *buf, int len)
 {
   char hbuf[512];
-  int hlen = snprintf(hbuf, sizeof(hbuf), "POST /%s%s/%d HTTP/1.1\r\n"
+  int hlen = RTMP_snprintf(hbuf, sizeof(hbuf), "POST /%s%s/%d HTTP/1.1\r\n"
     "Host: %.*s:%d\r\n"
     "Accept: */*\r\n"
     "User-Agent: Shockwave Flash\n"
@@ -3791,7 +3792,7 @@ HTTP_read(RTMP *r, int fill)
     return -1;
   ptr = r->m_sb.sb_start + sizeof("HTTP/1.1 200");
   while ((ptr = strstr(ptr, "Content-"))) {
-    if (!strncasecmp(ptr+8, "length:", 7)) break;
+    if (!RTMP_strncasecmp(ptr+8, "length:", 7)) break;
     ptr += 8;
   }
   if (!ptr)

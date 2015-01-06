@@ -3,6 +3,7 @@ RTMP Dump v2.4
 (C) 2009-2011 Howard Chu
 (C) 2010 2a665470ced7adb7156fcef47f8199a6371c117b8a79e399a2771e0b36384090
 (C) 2011 33ae1ce77301f4b4494faaa5f609f3c48b9dcf82
+(C) 2015 kbinani
 License: GPLv2
 librtmp license: LGPLv2.1
 http://rtmpdump.mplayerhq.hu/
@@ -19,7 +20,12 @@ for MacOSX or
 
   $ make SYS=mingw
 
-for Windows.
+for Windows(MinGW) or
+
+  $ git submodule update --init --recursive
+  $ nmake -f Makefile.msvc.mak
+
+for Windows(MSVC).
 
 You can cross-compile for other platforms using the CROSS_COMPILE variable:
 
