@@ -35,7 +35,7 @@
 
 #ifdef WIN32
 #define RTMP_fseeko _fseeki64
-#define RTMP_ftello _ftelli64
+#define RTMP_ftello(f) (off_t)_ftelli64(f)
 #include <io.h>
 #include <fcntl.h>
 #include <sys/types.h>
