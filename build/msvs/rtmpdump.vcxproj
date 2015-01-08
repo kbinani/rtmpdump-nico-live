@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\openssl.1.0.1.25\build\native\openssl.props" Condition="Exists('packages\openssl.1.0.1.25\build\native\openssl.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -12,12 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ext\wingetopt\src\getopt.c" />
-    <ClCompile Include="..\..\ext\zlib\adler32.c" />
-    <ClCompile Include="..\..\ext\zlib\crc32.c" />
-    <ClCompile Include="..\..\ext\zlib\inffast.c" />
-    <ClCompile Include="..\..\ext\zlib\inflate.c" />
-    <ClCompile Include="..\..\ext\zlib\inftrees.c" />
-    <ClCompile Include="..\..\ext\zlib\zutil.c" />
     <ClCompile Include="..\..\librtmp\amf.c" />
     <ClCompile Include="..\..\librtmp\hashswf.c" />
     <ClCompile Include="..\..\librtmp\log.c" />
@@ -25,10 +20,15 @@
     <ClCompile Include="..\..\librtmp\rtmp.c" />
     <ClCompile Include="..\..\rtmpdump.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{29EBD806-91C1-44A6-9C51-92BBC41C52F0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>rtmpdump</RootNamespace>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -53,12 +53,18 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <NuGetPackageImportStamp>d9a45d86</NuGetPackageImportStamp>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <Linkage-openssl>static</Linkage-openssl>
+    <Linkage-zlib>static</Linkage-zlib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <Linkage-openssl>static</Linkage-openssl>
+    <Linkage-zlib>static</Linkage-zlib>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -67,15 +73,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;RTMPDUMP_VERSION="v2.4";_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\ext\wingetopt\src;$(ProjectDir)..\..\ext\openssl;$(ProjectDir)..\..\ext\openssl\inc32;$(ProjectDir)..\..\ext\openssl\crypto;$(ProjectDir)..\..\ext\zlib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\ext\wingetopt\src;$(ProjectDir)packages\openssl.1.0.1.25\build\native\include;$(ProjectDir)packages\openssl.1.0.1.25\build\native\include\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static;$(ProjectDir)packages\zlib.1.2.8.7\build\native\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ssleay32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ext\openssl\out32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalDependencies>$(ProjectDir)packages\openssl.1.0.1.25\build\native\lib\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static\ssleay32.lib;$(ProjectDir)packages\openssl.1.0.1.25\build\native\lib\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static\libeay32.lib;$(ProjectDir)packages\zlib.1.2.8.7\build\native\lib\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static\cdecl\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent />
   </ItemDefinitionGroup>
@@ -88,21 +92,35 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;RTMPDUMP_VERSION="v2.4";_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\ext\wingetopt\src;$(ProjectDir)..\..\ext\openssl;$(ProjectDir)..\..\ext\openssl\inc32;$(ProjectDir)..\..\ext\openssl\crypto;$(ProjectDir)..\..\ext\zlib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\ext\wingetopt\src;$(ProjectDir)packages\openssl.1.0.1.25\build\native\include;$(ProjectDir)packages\openssl.1.0.1.25\build\native\include\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static;$(ProjectDir)packages\zlib.1.2.8.7\build\native\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ssleay32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ext\openssl\out32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalDependencies>$(ProjectDir)packages\openssl.1.0.1.25\build\native\lib\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static\ssleay32.lib;$(ProjectDir)packages\openssl.1.0.1.25\build\native\lib\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static\libeay32.lib;$(ProjectDir)packages\zlib.1.2.8.7\build\native\lib\$(PlatformToolset)\$(PlatformName)\$(Configuration)\static\cdecl\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets" Condition="Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" />
+    <Import Project="packages\zlib.1.2.8.7\build\native\zlib.targets" Condition="Exists('packages\zlib.1.2.8.7\build\native\zlib.targets')" />
+    <Import Project="packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets" Condition="Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" />
+    <Import Project="packages\openssl.1.0.1.25\build\native\openssl.targets" Condition="Exists('packages\openssl.1.0.1.25\build\native\openssl.targets')" />
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューターにはない NuGet パッケージを参照しています。これらをダウンロードするには、NuGet パッケージの復元を有効にしてください。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。不足しているファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets'))" />
+    <Error Condition="!Exists('packages\zlib.1.2.8.7\build\native\zlib.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.1.2.8.7\build\native\zlib.targets'))" />
+    <Error Condition="!Exists('packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets'))" />
+    <Error Condition="!Exists('packages\openssl.1.0.1.25\build\native\openssl.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.25\build\native\openssl.props'))" />
+    <Error Condition="!Exists('packages\openssl.1.0.1.25\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.1.0.1.25\build\native\openssl.targets'))" />
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
 </Project>
